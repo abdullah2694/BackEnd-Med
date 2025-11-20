@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const { logger, maskSensitive } = require('../lib/logger');
 
 const Appointment = require('../models/Appointment');
 
@@ -37,7 +38,7 @@ router.get('/doctors', (req, res) => {
     const list = DOCTORS.map(({ name, avatar, designation, rating, specialties, bio }) => ({ name, avatar, designation, rating, specialties, bio }));
     return res.json({ doctors: list });
   } catch (err) {
-    console.error(err);
+    logger.error('Appointment booking error', { err: err && err.message ? err.message : err, body: maskSensitive(req.body) });
     return res.status(500).json({ msg: 'Server error' });
   }
 });
@@ -74,7 +75,7 @@ router.post('/book', auth, async (req, res) => {
     // Include doctor metadata in the response for convenience
     return res.json({ msg: 'Appointment booked', appointment: appt, doctor: doctorObj });
   } catch (err) {
-    console.error(err);
+    logger.error('Fetch upcoming appointments error', { err: err && err.message ? err.message : err, user: req.user && req.user.id });
     return res.status(500).json({ msg: 'Server error' });
   }
 });
@@ -87,7 +88,7 @@ router.get('/upcoming', auth, async (req, res) => {
     const appts = await Appointment.find({ user: req.user.id, date: { $gte: today } }).sort({ date: 1, time: 1 });
     return res.json({ appointments: appts });
   } catch (err) {
-    console.error(err);
+    logger.error('Fetch history appointments error', { err: err && err.message ? err.message : err, user: req.user && req.user.id });
     return res.status(500).json({ msg: 'Server error' });
   }
 });

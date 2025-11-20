@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const { logger, maskSensitive } = require('../lib/logger');
 
 const Record = require('../models/Record');
 
@@ -10,7 +11,7 @@ router.get('/', auth, async (req, res) => {
     const records = await Record.find({ user: req.user.id }).sort({ uploadedAt: -1 });
     return res.json({ records });
   } catch (err) {
-    console.error(err);
+    logger.error('Fetch records error', { err: err && err.message ? err.message : err, user: req.user && req.user.id });
     return res.status(500).json({ msg: 'Server error' });
   }
 });
@@ -25,7 +26,7 @@ router.post('/upload', auth, async (req, res) => {
     await rec.save();
     return res.json({ msg: 'Record uploaded', record: rec });
   } catch (err) {
-    console.error(err);
+    logger.error('Upload record error', { err: err && err.message ? err.message : err, body: maskSensitive(req.body), user: req.user && req.user.id });
     return res.status(500).json({ msg: 'Server error' });
   }
 });

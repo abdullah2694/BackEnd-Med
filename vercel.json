@@ -8,12 +8,11 @@
   ],
   "routes": [
     {
-      "src": "/api/index.js",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/docs",
-      "dest": "https://external-docs.example.com"
+      "src": "/(.*)",
+      "dest": "api/index.js"
     }
-  ]
+  ],
+  "env": {
+    "LOG_LEVEL": "debug"
+  }
 }

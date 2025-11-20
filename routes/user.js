@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const { logger, maskSensitive } = require('../lib/logger');
 
 const User = require('../models/User');
 
@@ -11,7 +12,7 @@ router.get('/profile', auth, async (req, res) => {
     if (!user) return res.status(404).json({ msg: 'User not found' });
     return res.json({ user });
   } catch (err) {
-    console.error(err);
+    logger.error('Get profile error', { err: err && err.message ? err.message : err, user: req.user && req.user.id });
     return res.status(500).json({ msg: 'Server error' });
   }
 });
@@ -28,7 +29,7 @@ router.put('/update', auth, async (req, res) => {
     if (!user) return res.status(404).json({ msg: 'User not found' });
     return res.json({ user });
   } catch (err) {
-    console.error(err);
+    logger.error('Update profile error', { err: err && err.message ? err.message : err, body: maskSensitive(req.body), user: req.user && req.user.id });
     return res.status(500).json({ msg: 'Server error' });
   }
 });

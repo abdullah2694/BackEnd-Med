@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { logger, maskSensitive } = require('../lib/logger');
 
 const User = require('../models/User');
 
@@ -26,7 +27,7 @@ router.post('/signup', async (req, res) => {
 
     return res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
   } catch (err) {
-    console.error(err);
+    logger.error('Signup error', { err: err && err.message ? err.message : err, body: maskSensitive(req.body) });
     // Handle duplicate key error (race condition)
     if (err && err.code === 11000) {
       return res.status(400).json({ msg: 'Email already registered' });
@@ -53,7 +54,7 @@ router.post('/login', async (req, res) => {
 
     return res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
   } catch (err) {
-    console.error(err);
+    logger.error('Login error', { err: err && err.message ? err.message : err, body: maskSensitive(req.body) });
     return res.status(500).json({ msg: 'Server error' });
   }
 });
