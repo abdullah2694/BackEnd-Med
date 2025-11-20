@@ -7,7 +7,31 @@ const { logger, maskSensitive } = require('./lib/logger');
 dotenv.config();
 
 const app = express();
-app.use(cors());
+
+// CORS configuration: allowed origins can be provided via ALLOWED_ORIGINS env (comma-separated)
+const allowedEnv = process.env.ALLOWED_ORIGINS || '';
+const allowCredentials = (process.env.ALLOW_CREDENTIALS || 'false').toLowerCase() === 'true';
+const allowedOrigins = allowedEnv.split(',').map((s) => s.trim()).filter(Boolean);
+
+if (allowedOrigins.length === 0) {
+  // No allowed origins configured — default permissive for development
+  app.use(cors({ origin: true, credentials: allowCredentials }));
+  logger.info('CORS: permissive (no ALLOWED_ORIGINS set)');
+} else {
+  app.use(
+    cors({
+      origin: (origin, cb) => {
+        // allow requests like curl/postman with no origin
+        if (!origin) return cb(null, true);
+        if (allowedOrigins.includes(origin)) return cb(null, true);
+        return cb(new Error('CORS blocked by policy'), false);
+      },
+      credentials: allowCredentials,
+    })
+  );
+  logger.info(`CORS: restricted to ${allowedOrigins.join(', ')}`);
+}
+
 app.use(express.json({ limit: '10mb' }));
 
 // HTTP request logging via morgan -> winston

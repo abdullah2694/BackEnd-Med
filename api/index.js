@@ -1,5 +1,5 @@
 const serverless = require('serverless-http');
-const app = require('../app');
+const app = require('../app.js');
 const { connectDB } = require('../lib/db');
 
 // Connect to DB once when the module is loaded (cold-start)

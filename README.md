@@ -43,3 +43,15 @@ Notes and tips
 - Keep an eye on cold-start DB connections; `lib/db.js` attempts to reuse mongoose connections.
 - If you prefer container-like hosting (persistent server), consider deploying to Render, Heroku, or a VM instead.
 
+CORS configuration
+------------------
+- The API reads `ALLOWED_ORIGINS` (comma-separated) from environment variables. If empty or not set, the server allows all origins (convenient for development).
+- To restrict CORS in production, set `ALLOWED_ORIGINS` in Vercel Project Settings to your frontend domains and set `ALLOW_CREDENTIALS=true` if you need cookie support.
+
+Example `.env` entries:
+```
+ALLOWED_ORIGINS=https://app.example.com,https://staging.example.com
+ALLOW_CREDENTIALS=false
+```
+
+
