@@ -8,6 +8,7 @@ const User = require('../models/User');
 
 // POST /signup
 router.post('/signup', async (req, res) => {
+  const start = Date.now();
   try {
     // Guard against missing/invalid JSON body
     const { name, email, password, phone } = req.body || {};
@@ -25,9 +26,12 @@ router.post('/signup', async (req, res) => {
     const payload = { id: user._id };
     const token = jwt.sign(payload, process.env.JWT_SECRET || 'secret', { expiresIn: '7d' });
 
-    return res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
+  const duration = Date.now() - start;
+  logger.info(`Signup route completed in ${duration}ms`);
+  return res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
   } catch (err) {
-    logger.error('Signup error', { err: err && err.message ? err.message : err, body: maskSensitive(req.body) });
+  const duration = Date.now() - start;
+  logger.error('Signup error', { err: err && err.message ? err.message : err, body: maskSensitive(req.body), duration });
     // Handle duplicate key error (race condition)
     if (err && err.code === 11000) {
       return res.status(400).json({ msg: 'Email already registered' });
@@ -38,6 +42,7 @@ router.post('/signup', async (req, res) => {
 
 // POST /login
 router.post('/login', async (req, res) => {
+  const start = Date.now();
   try {
     // Guard against missing/invalid JSON body
     const { email, password } = req.body || {};
@@ -52,9 +57,12 @@ router.post('/login', async (req, res) => {
     const payload = { id: user._id };
     const token = jwt.sign(payload, process.env.JWT_SECRET || 'secret', { expiresIn: '7d' });
 
-    return res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
+  const duration = Date.now() - start;
+  logger.info(`Login route completed in ${duration}ms`);
+  return res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
   } catch (err) {
-    logger.error('Login error', { err: err && err.message ? err.message : err, body: maskSensitive(req.body) });
+  const duration = Date.now() - start;
+  logger.error('Login error', { err: err && err.message ? err.message : err, body: maskSensitive(req.body), duration });
     return res.status(500).json({ msg: 'Server error' });
   }
 });

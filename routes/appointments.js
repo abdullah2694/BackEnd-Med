@@ -34,17 +34,22 @@ const DOCTORS = [
 
 // GET /doctors - public list of available doctors with metadata
 router.get('/doctors', (req, res) => {
+  const start = Date.now();
   try {
     const list = DOCTORS.map(({ name, avatar, designation, rating, specialties, bio }) => ({ name, avatar, designation, rating, specialties, bio }));
-    return res.json({ doctors: list });
+  const duration = Date.now() - start;
+  logger.info(`Doctors route completed in ${duration}ms`);
+  return res.json({ doctors: list });
   } catch (err) {
-    logger.error('Appointment booking error', { err: err && err.message ? err.message : err, body: maskSensitive(req.body) });
+  const duration = Date.now() - start;
+  logger.error('Appointment booking error', { err: err && err.message ? err.message : err, body: maskSensitive(req.body), duration });
     return res.status(500).json({ msg: 'Server error' });
   }
 });
 
 // POST /book
 router.post('/book', auth, async (req, res) => {
+  const start = Date.now();
   try {
     const { doctor, date, time } = req.body || {};
     if (!doctor || !date || !time) return res.status(400).json({ msg: 'doctor, date and time are required' });
@@ -73,35 +78,47 @@ router.post('/book', auth, async (req, res) => {
     const appt = new Appointment({ user: req.user.id, doctor: doctorObj.name, date: appointmentDate, time, status: 'Confirmed' });
     await appt.save();
     // Include doctor metadata in the response for convenience
-    return res.json({ msg: 'Appointment booked', appointment: appt, doctor: doctorObj });
+  const duration = Date.now() - start;
+  logger.info(`Book appointment route completed in ${duration}ms`);
+  return res.json({ msg: 'Appointment booked', appointment: appt, doctor: doctorObj });
   } catch (err) {
-    logger.error('Fetch upcoming appointments error', { err: err && err.message ? err.message : err, user: req.user && req.user.id });
+  const duration = Date.now() - start;
+  logger.error('Fetch upcoming appointments error', { err: err && err.message ? err.message : err, user: req.user && req.user.id, duration });
     return res.status(500).json({ msg: 'Server error' });
   }
 });
 
 // GET /upcoming
 router.get('/upcoming', auth, async (req, res) => {
+  const start = Date.now();
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const appts = await Appointment.find({ user: req.user.id, date: { $gte: today } }).sort({ date: 1, time: 1 });
-    return res.json({ appointments: appts });
+  const duration = Date.now() - start;
+  logger.info(`Upcoming appointments route completed in ${duration}ms`);
+  return res.json({ appointments: appts });
   } catch (err) {
-    logger.error('Fetch history appointments error', { err: err && err.message ? err.message : err, user: req.user && req.user.id });
+  const duration = Date.now() - start;
+  logger.error('Fetch history appointments error', { err: err && err.message ? err.message : err, user: req.user && req.user.id, duration });
     return res.status(500).json({ msg: 'Server error' });
   }
 });
 
 // GET /history
 router.get('/history', auth, async (req, res) => {
+  const start = Date.now();
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const appts = await Appointment.find({ user: req.user.id, date: { $lt: today } }).sort({ date: -1, time: -1 });
-    return res.json({ appointments: appts });
+  const duration = Date.now() - start;
+  logger.info(`History appointments route completed in ${duration}ms`);
+  return res.json({ appointments: appts });
   } catch (err) {
-    console.error(err);
+  const duration = Date.now() - start;
+  console.error(err);
+  logger.error('History appointments error', { err: err && err.message ? err.message : err, duration });
     return res.status(500).json({ msg: 'Server error' });
   }
 });
