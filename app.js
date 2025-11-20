@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
+const mongoose = require('mongoose');
 const { logger, maskSensitive } = require('./lib/logger');
 
 dotenv.config();
@@ -75,6 +76,20 @@ app.use('/api/records', recordsRoutes);
 // Basic root
 app.get('/', (req, res) => {
   res.json({ ok: true, message: 'Medical Appointment & Records API' });
+});
+
+// Health check
+app.get('/health', async (req, res) => {
+  try {
+    // Check DB connection
+    if (mongoose.connection.readyState === 1) {
+      res.json({ status: 'ok', db: 'connected' });
+    } else {
+      res.status(500).json({ status: 'error', db: 'disconnected' });
+    }
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
 });
 
 module.exports = app;
